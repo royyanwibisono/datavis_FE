@@ -12,8 +12,9 @@ interface DataResponse {
 }
 
 function App() {
-  // const [TMin, setTMin] = React.useState<string>("")
-  // const [TMax, setTMax] = React.useState<string>("")
+  const [TMin, setTMin] = React.useState<string>("")
+  const [TMax, setTMax] = React.useState<string>("")
+  const [Resolution, setResulition] = React.useState<string>("1s")
   const [Data, setData] = React.useState<Serie[]|null>(null)
   const [Items, setItems] = React.useState<ItemKey[]>([])
 
@@ -62,6 +63,9 @@ function App() {
         // Handle the response if needed
         // console.log('Response:', response.data);
         formatData(response.data)
+        setResulition(inputValues.res)
+        setTMin(inputValues.ts)
+        setTMax(inputValues.te)
       })
       .catch((error) => {
         // Handle errors
@@ -88,7 +92,7 @@ function App() {
 
   // This useEffect will trigger when the component mounts (on page load)
   useEffect(() => {
-    axios.post('http://localhost:7000/timerange', { res : "1s"}, {
+    axios.post('http://localhost:7000/timerange', { res : Resolution}, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -96,14 +100,15 @@ function App() {
       .then((response) => {
         // Handle the response if needed
         console.log('Response:', response.data);
-        // setTMin(response.data.TMin)
-        // setTMax(response.data.TMax)
 
         handleFormSubmit({
-          res: "1s",
+          res: Resolution,
           ts: (response.data.TMin + ""),//.substring(0, (response.data.TMin + "").length - 1),
           te: (response.data.TMax + "")//.substring(0, (response.data.TMax + "").length - 1),
         })
+
+        setTMin(response.data.TMin)
+        setTMax(response.data.TMax)
       })
       .catch((error) => {
         // Handle errors
@@ -114,7 +119,7 @@ function App() {
   return (
     <>
       <h1>My Nivo Line Chart</h1>
-      <InputComponent onSubmit={handleFormSubmit} itemKeys={Items} onItemKeyToggled={itemToggled}/>
+      <InputComponent onSubmit={handleFormSubmit} itemKeys={Items} onItemKeyToggled={itemToggled} res={Resolution} ts={TMin} te={TMax}/>
       {Data !== null && <MyLineChart data={Data}/>}
     </>
   )

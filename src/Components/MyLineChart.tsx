@@ -30,7 +30,7 @@ const MyLineChart: React.FC<Datas> = ({data}) => {
       } else if (deltaInMillis >= 1) {
         delta = 'millisecond'
       } else {
-        delta = 'millisecond';
+        delta = 'microsecond';
       }
     }
   }

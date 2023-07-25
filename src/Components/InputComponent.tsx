@@ -10,6 +10,9 @@ interface InputComponentProps {
   onSubmit: (inputValues: InputValues) => void;
   itemKeys?: ItemKey[];
   onItemKeyToggled?: (item: ItemKey) => void
+  res: string;
+  ts: string;
+  te: string;
 }
 
 export interface InputValues {
@@ -18,29 +21,34 @@ export interface InputValues {
   te: string;
 }
 
-const InputComponent: React.FC<InputComponentProps> = ({ onSubmit, itemKeys, onItemKeyToggled}) => {
-  const [inputValues, setInputValues] = useState<InputValues>({
-    res: '',
-    ts: '',
-    te: '',
-  });
+const InputComponent: React.FC<InputComponentProps> = ({ onSubmit, itemKeys, onItemKeyToggled, res, ts, te}) => {
+  const [inputRes, setInputRes] = useState<string>(res)
+  const [inputTs, setInputTs] = useState<string>(ts)
+  const [inputTe, setInputTe] = useState<string>(te)
+
+  // Update state when props change
+  React.useEffect(() => {
+    setInputRes(res);
+    setInputTs(ts);
+    setInputTe(te);
+  }, [res, ts, te]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setInputValues((prevInputValues) => ({
-      ...prevInputValues,
-      [name]: value,
-    }));
+    if (name === "ts"){
+      setInputTs(value)
+    }
+    if (name === "te"){
+      setInputTe(value)
+    }
   };
 
   const handleSubmit = () => {
-    onSubmit(inputValues);
-    // You can reset the input fields here if needed
-    setInputValues({
-      res: '',
-      ts: '',
-      te: '',
-    });
+    onSubmit({
+        res: inputRes,
+        ts: inputTs,
+        te: inputTe,
+      });
   };
 
   const handleToggle = (id: number) => {
@@ -48,10 +56,7 @@ const InputComponent: React.FC<InputComponentProps> = ({ onSubmit, itemKeys, onI
   };
 
   const onSelected = (selectedValue: string) => {
-    setInputValues((prevInputValues) => ({
-      ...prevInputValues,
-      ["res"]: selectedValue,
-    }));
+    setInputRes(selectedValue)
   }
 
   return (
@@ -69,8 +74,8 @@ const InputComponent: React.FC<InputComponentProps> = ({ onSubmit, itemKeys, onI
         ))}
       </div>}
       <div style={{ padding: '30px'}}>
-        Resolution : <InputDropdown onChange={onSelected} options={["1s","50ms", "ms", "us"]} value={inputValues.res} />
-        Time Range : <input type="text" onChange={handleInputChange} name="ts" /> <input type="text" onChange={handleInputChange} name="te" />
+        Resolution : <InputDropdown onChange={onSelected} options={["1s","50ms", "ms", "us"]} value={inputRes} />
+        Time Range : <input type="text" onChange={handleInputChange} name="ts" value={inputTs} /> <input type="text" onChange={handleInputChange} name="te" value={inputTe}/>
         <button onClick={handleSubmit}>Submit</button>
       </div>
       <div style={{ padding: '30px'}}>
