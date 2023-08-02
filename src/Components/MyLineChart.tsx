@@ -31,10 +31,17 @@ const MyLineChart: React.FC<Datas> = ({data}) => {
         delta = 'millisecond'
       } else {
         delta = 'microsecond';
+        console.log("format microseconds");
+        for (let i = 0; i < enabledData.length; i++) {
+          for (let j = 0; j < enabledData[i].data.length; j++) {
+            console.log(enabledData[i].data[j])
+            break
+          }
+          break
+        }
       }
     }
   }
-
 
   const MyCustomTooltip: React.FC<P> = ({ point }) => {
     return (
@@ -54,7 +61,7 @@ const MyLineChart: React.FC<Datas> = ({data}) => {
         xScale={{
           type: 'time',
           format: '%Y-%m-%dT%H:%M:%S.%LZ', // Format for microsecond resolution
-          precision: delta, // Set precision to microsecond
+          precision:  delta, // Set precision to microsecond
         }}
         yScale={{
             type: 'linear',

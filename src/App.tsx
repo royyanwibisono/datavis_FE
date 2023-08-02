@@ -4,14 +4,12 @@ import './App.css'
 import InputComponent, { InputValues, ItemKey } from './Components/InputComponent'
 import MyLineChart from './Components/MyLineChart'
 import { Serie } from '@nivo/line';
-
-interface DataResponse {
-  Keys: []
-  DataValue: []
-  RowCount: number
-}
+import MyLineChartus from './Components/MyLineChartus';
+import { Routes,Route, useNavigate  } from 'react-router-dom'
+import DataView from './Components/DataView';
 
 function App() {
+  const navigate = useNavigate()
   const [TMin, setTMin] = React.useState<string>("")
   const [TMax, setTMax] = React.useState<string>("")
   const [Resolution, setResulition] = React.useState<string>("1s")
@@ -22,7 +20,7 @@ function App() {
   // const [overhang_bearing_accelerometer, setDataOBA] = React.useState<Serie[]|null>(null)
   // const [DataMicrophone, setDataMicrophone] = React.useState<Serie[]|null>(null)
 
-  const formatData = (responsedata: DataResponse) => {
+  const formatData = (res: string, responsedata: DataResponse) => {
     const formateddata : Serie[] = [];
     const ik: ItemKey[] = []
     for (let index = 1; index < responsedata.Keys.length; index++) {
@@ -43,8 +41,12 @@ function App() {
 
     for (let index = 0; index <  responsedata.DataValue.length; index++) {
       const row: unknown[] = responsedata.DataValue[index];
-      for (let y = 1; y < row.length; y++) {
-        formateddata[y-1].data.push({ x : new Date(row[0] as string), y : row[y] as number})
+      for (let i = 1; i < row.length; i++) {
+        if (res === "us"){
+          formateddata[i-1].data.push({ x : index+1, y : row[i] as number})
+        } else {
+          formateddata[i-1].data.push({ x : new Date(row[0] as string), y : row[i] as number})
+        }
       }
     }
 
@@ -62,7 +64,7 @@ function App() {
       .then((response) => {
         // Handle the response if needed
         // console.log('Response:', response.data);
-        formatData(response.data)
+        formatData(inputValues.res, response.data)
         setResulition(inputValues.res)
         setTMin(inputValues.ts)
         setTMax(inputValues.te)
@@ -92,35 +94,46 @@ function App() {
 
   // This useEffect will trigger when the component mounts (on page load)
   useEffect(() => {
-    axios.post('http://localhost:7000/timerange', { res : Resolution}, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-      .then((response) => {
-        // Handle the response if needed
-        console.log('Response:', response.data);
-
-        handleFormSubmit({
-          res: Resolution,
-          ts: (response.data.TMin + ""),//.substring(0, (response.data.TMin + "").length - 1),
-          te: (response.data.TMax + "")//.substring(0, (response.data.TMax + "").length - 1),
-        })
-
-        setTMin(response.data.TMin)
-        setTMax(response.data.TMax)
+    if (window.location.hash.length > 1){
+      navigate(window.location.hash.substring(1))
+    }
+    else {
+      axios.post('http://localhost:7000/timerange', { res : Resolution}, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       })
-      .catch((error) => {
-        // Handle errors
-        console.error('Error:', error);
-      });
+        .then((response) => {
+          // Handle the response if needed
+          console.log('Response:', response.data);
+
+          handleFormSubmit({
+            res: Resolution,
+            ts: (response.data.TMin + ""),//.substring(0, (response.data.TMin + "").length - 1),
+            te: (response.data.TMax + "")//.substring(0, (response.data.TMax + "").length - 1),
+          })
+
+          setTMin(response.data.TMin)
+          setTMax(response.data.TMax)
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error:', error);
+        });
+    }
   }, []);
 
-  return (
-    <>
-      <h1>My Nivo Line Chart</h1>
-      <InputComponent onSubmit={handleFormSubmit} itemKeys={Items} onItemKeyToggled={itemToggled} res={Resolution} ts={TMin} te={TMax}/>
-      {Data !== null && <MyLineChart data={Data}/>}
+  return (<>
+    <Routes>
+      <Route index path={'/data'} element={<DataView hashValue={window.location.pathname} searchValue={window.location.search} />} />
+      <Route index path={'/'} element={<>
+        <a href={`/data?res=us&ts=${TMin}&te=${TMax}&cols=tachometer,oba_radial&skipr=5000`}>Data View</a>
+        <h1>Vibration Line Chart</h1>
+        <InputComponent onSubmit={handleFormSubmit} itemKeys={Items} onItemKeyToggled={itemToggled} res={Resolution} ts={TMin} te={TMax}/>
+        {Data !== null && Resolution !== 'us' && <MyLineChart data={Data}/>}
+        {Data !== null && Resolution === 'us' && <MyLineChartus data={Data}/>}
+        </>} />
+    </Routes>
     </>
   )
 }
