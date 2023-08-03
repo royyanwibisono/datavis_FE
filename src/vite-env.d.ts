@@ -4,3 +4,8 @@ interface DataResponse {
   DataValue: []
   RowCount: number
 }
+
+interface AccelerometerData {
+  time: number;
+  value: number;
+}

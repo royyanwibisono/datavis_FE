@@ -26,7 +26,7 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  /* place-items: center; */
   min-width: 320px;
   min-height: 100vh;
 }
@@ -67,3 +67,92 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+#root {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  width: 100vw;
+}
+
+
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #333;
+  padding: 10px;
+  gap: 20px;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar li {
+  margin-right: 20px;
+}
+
+.navbar a {
+  text-decoration: none;
+  /* color: white; */
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+  }
+
+  .navbar ul {
+    margin-top: 10px;
+    flex-direction: row;
+  }
+
+  .navbar li {
+    margin-right: 10px;
+  }
+}
+
+
+
+/* input-autofill */
+.input-autofill {
+  position: relative;
+  display: inline-block;
+}
+
+.input-autofill input {
+  width: 300px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: #000;
+  border: 1px solid #ccc;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+}
+
+.autocomplete-list li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+  background-color: #0f0f0f;
+}
+
+

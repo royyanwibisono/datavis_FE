@@ -3,7 +3,8 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { ItemKey } from './InputComponent';
 import MyLineChartus from './MyLineChartus';
-
+import InputAutofill from './InputAutofill';
+import { Link } from 'react-router-dom';
 
 interface Props {
   hashValue: string | null;
@@ -11,19 +12,20 @@ interface Props {
 }
 
 const DataView: React.FC<Props> = (prop) => {
-  const [hashValue, setHashValue] = useState<string | null>(null);
-  const [res, setRes] = useState<string | null>("us");
-  const [ts, setTs] = useState<string | null>("");
-  const [te, setTe] = useState<string | null>("");
-  const [cols, setCols] = useState<string | null>("tachometer")
-  const [skipr,SetSkipr] = useState<string | null>("50000")
+  const [TMin, setTMin] = React.useState<string>("")
+  const [TMax, setTMax] = React.useState<string>("")
+  const [hashValue, setHashValue] = useState<string | null>(prop.hashValue);
+  const [res, setRes] = useState<string>("us");
+  const [ts, setTs] = useState<string>("");
+  const [te, setTe] = useState<string>("");
+  const [cols, setCols] = useState<string>("tachometer")
+  const [skipr,SetSkipr] = useState<string>("50000")
   const [Data, setData] = React.useState<Serie[]|null>(null)
 
   useEffect(() => {
     // Read hash value from location hash
     const hash = prop.hashValue;
     if (hash) {
-      // Remove the leading '#' character
       setHashValue(hash);
     }
 
@@ -58,7 +60,22 @@ const DataView: React.FC<Props> = (prop) => {
       
       handleFormSubmit(searchObject)
     }
-  }, [prop.hashValue, prop.searchValue]);
+  
+    axios.post(window.location.protocol+'//'+window.location.hostname+":7000"+'/timerange', { res : "1s"}, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    })
+      .then((response) => {
+        // Handle the response if needed
+        console.log('Response:', response.data);
+        setTMin(response.data.TMin)
+        setTMax(response.data.TMax)
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  },[])
 
   const formatData = (responsedata: DataResponse) => {
     const formateddata : Serie[] = [];
@@ -83,39 +100,94 @@ const DataView: React.FC<Props> = (prop) => {
         formateddata[i-1].data.push({ x : index+1, y : row[i] as number})
       }
     }
-
     setData(formateddata)
-
   };
 
 
   const handleFormSubmit = (inputValues: Record<string, string>) => {
-    axios.post('http://localhost:7000/data', inputValues, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-      .then((response) => {
-        // Handle the response if needed
-        // console.log('Response:', response.data);
-        formatData(response.data)
+    if (prop.hashValue) {
+      axios.post(window.location.protocol+'//'+window.location.hostname+":7000"+prop.hashValue, inputValues, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       })
-      .catch((error) => {
-        // Handle errors
-        console.error('Error:', error);
-      });
+        .then((response) => {
+          // Handle the response if needed
+          console.log('Response:', response.data);
+          formatData(response.data)
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error:', error);
+        });
+    }
   };
 
   return (
     <div>
-      <p>Hash Value: {hashValue || 'No hash value found'}</p>
-      <p>Resolution Value: {res || 'No Res value found'}</p>
-      <p>Time Start Value: {ts || 'No Res value found'}</p>
-      <p>Time Ends Value: {te || 'No Res value found'}</p>
-      <p>Columns Value: {cols || 'No Res value found'}</p>
-      <p>Skip Row Value: {skipr || 'No Res value found'}</p>
+      <table>
+        <tbody>
+          <tr>
+            <td>Resolution Value:</td>
+            <td>
+              <InputAutofill
+                placeholder='Resolution Value'
+                initialValue={res}
+                autocompleteOptions={["us", "ms", "50ms", "1s"]}
+                setInput={setRes}
+              />
+            </td>
+            <td rowSpan={5}>
+              <Link to={hashValue+`?res=${res}&ts=${ts}&te=${te}&cols=${cols}&skipr=${skipr}`}>Execute &gt;&gt;</Link>
+            </td>
+          </tr>
+          <tr>
+            <td>Time Start Value:</td>
+            <td>
+              <InputAutofill
+                placeholder='Time Start Value'
+                initialValue={ts}
+                autocompleteOptions={[TMin, TMax]}
+                setInput={setTs}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Time Ends Value:</td>
+            <td>
+              <InputAutofill
+                placeholder='Time Ends Value'
+                initialValue={te}
+                autocompleteOptions={[TMin, TMax]}
+                setInput={setTe}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Columns Value:</td>
+            <td>
+              <InputAutofill
+                placeholder='Columns Value'
+                initialValue={cols}
+                autocompleteOptions={["tachometer", "uba_axial", "uba_radial", "uba_tangential", "oba_axial", "oba_radial", "oba_tangential", "microphone"]}
+                setInput={setCols}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Skip Row Value:</td>
+            <td>
+              <InputAutofill
+                placeholder='Skip Row Value'
+                initialValue={skipr}
+                autocompleteOptions={["1", "20", "50", "100", "1000", "10000"]}
+                setInput={SetSkipr}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
       {Data !== null && <MyLineChartus data={Data}/>}
-
     </div>
   );
 };
